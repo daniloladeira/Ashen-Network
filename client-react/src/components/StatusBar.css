@@ -1,0 +1,60 @@
+.status-bar {
+  margin-bottom: 2rem;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 0 auto;
+}
+
+.status-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #e5e5e7;
+  transition: all 0.2s ease;
+}
+
+.status-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.status-card.connected {
+  border-color: #34c759;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+}
+
+.status-card.disconnected {
+  border-color: #ff3b30;
+  background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%);
+}
+
+.status-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+.status-card.connected .status-icon {
+  background-color: #34c759;
+}
+
+.status-card.disconnected .status-icon {
+  background-color: #ff3b30;
+}
+
+.status-info h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0 0 0.5rem 0;
+}
+
+.status-info span {
+  font-size: 0.9rem;
+  color: #86868b;
+  font-weight: 400;
+}

@@ -1,5 +1,0 @@
-spyne==2.14.0
-lxml==4.9.3
-Werkzeug==2.3.7
-flask==2.3.3
-six

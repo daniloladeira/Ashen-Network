@@ -7,12 +7,12 @@ O **Ashen Network** é um sistema completo que demonstra a integração entre ar
 ## 🏗️ Arquitetura do Sistema
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Cliente Web   │    │  Cliente Java   │    │  Swagger UI     │
-│   (HTML/JS)     │    │   (SOAP)        │    │ (Documentação)  │
-└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
-          │                      │                      │
-          └──────────────────────┼──────────────────────┘
+┌─────────────────┐    ┌─────────────────┐
+│   Cliente Web   │    │  Swagger UI     │
+│   (HTML/JS)     │    │ (Documentação)  │
+└─────────┬───────┘    └─────────┬───────┘
+          │                      │
+          └──────────────────────┘
                                  │
                     ┌────────────▼────────────┐
                     │     API GATEWAY         │
@@ -68,28 +68,20 @@ O **Ashen Network** é um sistema completo que demonstra a integração entre ar
   - Validação de dados
 
 ### ✅ 4. Cliente Web
-- **Tecnologia**: HTML5 + CSS3 + JavaScript (Vanilla)
+- **Tecnologia**: React.js + CSS3 + Axios
 - **Funcionalidades**:
   - Interface moderna e responsiva
+  - Componentes reutilizáveis
   - Consome tanto REST quanto SOAP via Gateway
   - Status em tempo real dos serviços
   - Dashboard integrado
-
-### ✅ 5. Cliente SOAP Java
-- **Tecnologia**: Java 11 + JAX-WS + Maven
-- **Funcionalidades**:
-  - Cliente puro SOAP (sem passar pelo Gateway)
-  - Interface de linha de comando interativa
-  - Demonstra uso direto do WSDL
-  - Documentação detalhada da arquitetura
 
 ## 🚀 Como Executar
 
 ### Pré-requisitos
 - Node.js 16+
 - Python 3.8+
-- Java 11+
-- Maven 3.6+
+- npm ou yarn
 
 ### ⚠️ Ordem de Execução
 Execute os serviços nesta ordem (cada um em um terminal separado):
@@ -121,20 +113,12 @@ npm start
 # Swagger em http://localhost:4000/api-docs
 ```
 
-### 4. Cliente Web
+### 4. Cliente Web React
 ```bash
-cd client-web
-python -m http.server 8080
-# Cliente em http://localhost:8080
-# Ou simplesmente abra index.html no navegador
-```
-
-### 5. Cliente Java SOAP (Opcional)
-```bash
-cd soap-client-java
-mvn clean compile
-mvn exec:java
-# Interface interativa no terminal
+cd client-react
+npm install
+npm start
+# Cliente rodando em http://localhost:3000
 ```
 
 ## 📝 WSDL - Principais Tags
@@ -250,24 +234,23 @@ curl http://localhost:8000/?wsdl
 | **REST Docs** | http://localhost:3001/api-docs | Documentação REST |
 | **SOAP Service** | http://localhost:8000 | Serviço de guildas |
 | **WSDL** | http://localhost:8000/?wsdl | Definição do serviço SOAP |
-| **Cliente Web** | client-web/index.html | Interface web |
+| **Cliente Web** | http://localhost:3000 | Interface React |
 
 ## 🏆 Diferenciais do Projeto
 
 1. **Arquitetura Completa**: Integração real entre REST e SOAP
 2. **Gateway Robusto**: Centralização com HATEOAS e health checks
-3. **Múltiplas Linguagens**: Node.js, Python e Java
+3. **Múltiplas Linguagens**: Node.js e Python
 4. **Documentação Completa**: Swagger para ambas as APIs
 5. **Cliente Moderno**: Interface web responsiva
 6. **WSDL Detalhado**: Documentação completa do serviço SOAP
-7. **Arquitetura Documentada**: Cliente Java com explicações detalhadas
 
 ## 📊 Métricas do Projeto
 
-- **Linguagens**: 3 (JavaScript/Node.js, Python, Java)
+- **Linguagens**: 2 (JavaScript/Node.js, Python)
 - **Protocolos**: 2 (REST, SOAP)
 - **Bancos de Dados**: 2 (SQLite para cada serviço)
-- **Clientes**: 2 (Web, Java Desktop)
+- **Clientes**: 1 (Web)
 - **Documentação**: 2 (Swagger REST + SOAP, WSDL)
 - **Endpoints**: 15+ (Gateway + REST + SOAP)
 

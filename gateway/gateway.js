@@ -12,6 +12,36 @@ app.use(express.json());
 const REST_API_URL = 'http://localhost:3001';
 const SOAP_SERVICE_URL = 'http://localhost:8000/soap';
 
+// Função auxiliar para parsing SOAP simplificado
+function parseSoapResponse(soapResponse, tagName) {
+  const regex = new RegExp(`<${tagName}>(.*?)</${tagName}>`, 'g');
+  const matches = [];
+  let match;
+  while ((match = regex.exec(soapResponse)) !== null) {
+    matches.push(match[1]);
+  }
+  return matches;
+}
+
+function parseGuildFromSoap(guildXml) {
+  const id = guildXml.match(/<id>(\d+)<\/id>/)?.[1];
+  const name = guildXml.match(/<name>(.*?)<\/name>/)?.[1];
+  const description = guildXml.match(/<description>(.*?)<\/description>/)?.[1];
+  const leader = guildXml.match(/<leader>(.*?)<\/leader>/)?.[1];
+  const member_count = guildXml.match(/<member_count>(\d+)<\/member_count>/)?.[1];
+  
+  if (id && name) {
+    return {
+      id: parseInt(id),
+      name,
+      description,
+      leader,
+      member_count: parseInt(member_count || 0)
+    };
+  }
+  return null;
+}
+
 // Função para fazer requisições SOAP
 async function soapRequest(operation, body = '') {
   const soapEnvelope = `<?xml version="1.0" encoding="UTF-8"?>
@@ -28,10 +58,26 @@ async function soapRequest(operation, body = '') {
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
         'SOAPAction': `http://ashennetwork.soap/guild/${operation}`
+      },
+      validateStatus: function (status) {
+        // Aceitar status 500 porque SOAP Faults retornam 500
+        return status >= 200 && status < 600;
       }
     });
+    
+    // Verificar se há SOAP Fault na resposta
+    if (response.data.includes('<soap:Fault>')) {
+      const faultString = response.data.match(/<faultstring>(.*?)<\/faultstring>/)?.[1] || 'SOAP Fault occurred';
+      throw new Error(faultString);
+    }
+    
     return response.data;
   } catch (error) {
+    // Se error.response existe, verificar SOAP Fault
+    if (error.response && error.response.data && error.response.data.includes('<soap:Fault>')) {
+      const faultString = error.response.data.match(/<faultstring>(.*?)<\/faultstring>/)?.[1] || 'SOAP Fault occurred';
+      throw new Error(faultString);
+    }
     throw new Error(`SOAP Error: ${error.message}`);
   }
 }
@@ -190,21 +236,8 @@ app.get('/api/gateway/guilds', checkSoapConnection, async (req, res) => {
     
     if (guildMatches) {
       guildMatches.forEach(guildXml => {
-        const id = guildXml.match(/<id>(\d+)<\/id>/)?.[1];
-        const name = guildXml.match(/<name>(.*?)<\/name>/)?.[1];
-        const description = guildXml.match(/<description>(.*?)<\/description>/)?.[1];
-        const leader = guildXml.match(/<leader>(.*?)<\/leader>/)?.[1];
-        const member_count = guildXml.match(/<member_count>(\d+)<\/member_count>/)?.[1];
-        
-        if (id && name) {
-          guilds.push({
-            id: parseInt(id),
-            name,
-            description,
-            leader,
-            member_count: parseInt(member_count || 0)
-          });
-        }
+        const guild = parseGuildFromSoap(guildXml);
+        if (guild) guilds.push(guild);
       });
     }
 
@@ -349,21 +382,38 @@ app.post('/api/gateway/guilds/join', checkSoapConnection, async (req, res) => {
       <character_name>${character_name}</character_name>
     `;
     
-    const soapResponse = await soapRequest('join_guild', soapBody);
-    
-    // Verifica se houve sucesso na resposta
-    const message = soapResponse.includes('successfully') ? 
-      `${character_name} joined guild successfully` :
-      'Character joined guild';
+    try {
+      const soapResponse = await soapRequest('join_guild', soapBody);
+      
+      // Verifica se houve sucesso na resposta
+      const message = soapResponse.includes('successfully') ? 
+        `${character_name} joined guild successfully` :
+        'Character joined guild';
 
-    res.json({
-      message,
-      source: 'SOAP Service',
-      links: [
-        { rel: 'guild', href: `/api/gateway/guilds/${guild_id}` },
-        { rel: 'members', href: `/api/gateway/guilds/${guild_id}/members` }
-      ]
-    });
+      res.json({
+        message,
+        source: 'SOAP Service',
+        links: [
+          { rel: 'guild', href: `/api/gateway/guilds/${guild_id}` },
+          { rel: 'members', href: `/api/gateway/guilds/${guild_id}/members` }
+        ]
+      });
+    } catch (soapError) {
+      // Tratar erros SOAP específicos
+      if (soapError.message === 'Character already in guild') {
+        return res.status(400).json({
+          error: 'Character already in guild',
+          message: `${character_name} já está nesta guilda`
+        });
+      } else if (soapError.message === 'Guild not found') {
+        return res.status(404).json({
+          error: 'Guild not found',
+          message: 'Guilda não encontrada'
+        });
+      } else {
+        throw soapError;
+      }
+    }
   } catch (error) {
     res.status(500).json({
       error: 'Failed to join guild',

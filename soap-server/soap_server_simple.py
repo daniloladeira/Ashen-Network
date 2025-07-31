@@ -38,35 +38,11 @@ def init_database():
         )
     ''')
     
-    # Inserir dados de exemplo se não existirem
-    cursor.execute('SELECT COUNT(*) FROM guilds')
-    if cursor.fetchone()[0] == 0:
-        sample_guilds = [
-            ('Covenant of Artorias', 'Protectors of the realm against the Abyss', 'Knight Artorias', 5),
-            ('Lords of Cinder', 'United to link the First Flame', 'Gwyn', 4),
-            ('Dragon Slayers', 'Hunters of ancient dragons', 'Ornstein', 3)
-        ]
-        
-        cursor.executemany('INSERT INTO guilds (name, description, leader, member_count) VALUES (?, ?, ?, ?)', sample_guilds)
-        
-        sample_members = [
-            ('Artorias', 1, 'Leader', '2024-01-01'),
-            ('Sif', 1, 'Guardian', '2024-01-02'),
-            ('Ciaran', 1, 'Assassin', '2024-01-03'),
-            ('Gough', 1, 'Archer', '2024-01-04'),
-            ('Solaire', 1, 'Knight', '2024-01-05'),
-            
-            ('Gwyn', 2, 'Leader', '2024-01-01'),
-            ('Ornstein', 2, 'Captain', '2024-01-02'),
-            ('Smough', 2, 'Executioner', '2024-01-03'),
-            ('Gwyndolin', 2, 'Sorcerer', '2024-01-04'),
-            
-            ('Ornstein', 3, 'Leader', '2024-01-01'),
-            ('Dragonslayer Armour', 3, 'Elite', '2024-01-02'),
-            ('Kalameet Hunter', 3, 'Veteran', '2024-01-03')
-        ]
-        
-        cursor.executemany('INSERT INTO guild_members (character_name, guild_id, rank, join_date) VALUES (?, ?, ?, ?)', sample_members)
+    # Não inserir dados de exemplo - deixar banco vazio para testes
+    # cursor.execute('SELECT COUNT(*) FROM guilds')
+    # if cursor.fetchone()[0] == 0:
+    #     # Dados de exemplo comentados
+    #     pass
     
     conn.commit()
     conn.close()
@@ -75,215 +51,104 @@ def get_db_connection():
     db_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'guilds.db')
     return sqlite3.connect(db_path)
 
-# WSDL Template
+# WSDL Simplificado
 WSDL_TEMPLATE = '''<?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
              xmlns:tns="http://ashennetwork.soap/guild"
              xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-             targetNamespace="http://ashennetwork.soap/guild"
-             elementFormDefault="qualified">
+             targetNamespace="http://ashennetwork.soap/guild">
 
-    <!-- Types -->
     <types>
         <xsd:schema targetNamespace="http://ashennetwork.soap/guild">
-            <!-- Guild Complex Type -->
-            <xsd:complexType name="Guild">
-                <xsd:sequence>
-                    <xsd:element name="id" type="xsd:int"/>
+            <xsd:element name="get_all_guilds"/>
+            <xsd:element name="get_guild_by_id">
+                <xsd:complexType><xsd:sequence>
+                    <xsd:element name="guild_id" type="xsd:int"/>
+                </xsd:sequence></xsd:complexType>
+            </xsd:element>
+            <xsd:element name="create_guild">
+                <xsd:complexType><xsd:sequence>
                     <xsd:element name="name" type="xsd:string"/>
                     <xsd:element name="description" type="xsd:string"/>
                     <xsd:element name="leader" type="xsd:string"/>
-                    <xsd:element name="member_count" type="xsd:int"/>
-                </xsd:sequence>
-            </xsd:complexType>
-            
-            <!-- Member Complex Type -->
-            <xsd:complexType name="Member">
-                <xsd:sequence>
-                    <xsd:element name="id" type="xsd:int"/>
-                    <xsd:element name="character_name" type="xsd:string"/>
-                    <xsd:element name="guild_id" type="xsd:int"/>
-                    <xsd:element name="rank" type="xsd:string"/>
-                    <xsd:element name="join_date" type="xsd:string"/>
-                </xsd:sequence>
-            </xsd:complexType>
-            
-            <!-- Request/Response Elements -->
-            <xsd:element name="get_all_guilds">
-                <xsd:complexType/>
+                </xsd:sequence></xsd:complexType>
             </xsd:element>
-            <xsd:element name="get_all_guildsResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="guild" type="tns:Guild" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            
-            <xsd:element name="get_guild_by_id">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="guild_id" type="xsd:int"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="get_guild_by_idResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="guild" type="tns:Guild"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            
-            <xsd:element name="create_guild">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="name" type="xsd:string"/>
-                        <xsd:element name="description" type="xsd:string"/>
-                        <xsd:element name="leader" type="xsd:string"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="create_guildResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="guild" type="tns:Guild"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            
             <xsd:element name="join_guild">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="guild_id" type="xsd:int"/>
-                        <xsd:element name="character_name" type="xsd:string"/>
-                    </xsd:sequence>
-                </xsd:complexType>
+                <xsd:complexType><xsd:sequence>
+                    <xsd:element name="guild_id" type="xsd:int"/>
+                    <xsd:element name="character_name" type="xsd:string"/>
+                </xsd:sequence></xsd:complexType>
             </xsd:element>
-            <xsd:element name="join_guildResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="message" type="xsd:string"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            
             <xsd:element name="get_guild_members">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="guild_id" type="xsd:int"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="get_guild_membersResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="member" type="tns:Member" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                </xsd:complexType>
+                <xsd:complexType><xsd:sequence>
+                    <xsd:element name="guild_id" type="xsd:int"/>
+                </xsd:sequence></xsd:complexType>
             </xsd:element>
         </xsd:schema>
     </types>
 
-    <!-- Messages -->
-    <message name="get_all_guildsRequest">
-        <part name="parameters" element="tns:get_all_guilds"/>
-    </message>
-    <message name="get_all_guildsResponse">
-        <part name="parameters" element="tns:get_all_guildsResponse"/>
-    </message>
-    
-    <message name="get_guild_by_idRequest">
-        <part name="parameters" element="tns:get_guild_by_id"/>
-    </message>
-    <message name="get_guild_by_idResponse">
-        <part name="parameters" element="tns:get_guild_by_idResponse"/>
-    </message>
-    
-    <message name="create_guildRequest">
-        <part name="parameters" element="tns:create_guild"/>
-    </message>
-    <message name="create_guildResponse">
-        <part name="parameters" element="tns:create_guildResponse"/>
-    </message>
-    
-    <message name="join_guildRequest">
-        <part name="parameters" element="tns:join_guild"/>
-    </message>
-    <message name="join_guildResponse">
-        <part name="parameters" element="tns:join_guildResponse"/>
-    </message>
-    
-    <message name="get_guild_membersRequest">
-        <part name="parameters" element="tns:get_guild_members"/>
-    </message>
-    <message name="get_guild_membersResponse">
-        <part name="parameters" element="tns:get_guild_membersResponse"/>
-    </message>
+    <message name="GuildRequest"><part name="body" element="tns:get_all_guilds"/></message>
+    <message name="GuildByIdRequest"><part name="body" element="tns:get_guild_by_id"/></message>
+    <message name="CreateGuildRequest"><part name="body" element="tns:create_guild"/></message>
+    <message name="JoinGuildRequest"><part name="body" element="tns:join_guild"/></message>
+    <message name="MembersRequest"><part name="body" element="tns:get_guild_members"/></message>
+    <message name="GuildResponse"><part name="body" type="xsd:string"/></message>
 
-    <!-- Port Type -->
-    <portType name="GuildServicePortType">
+    <portType name="GuildService">
         <operation name="get_all_guilds">
-            <input message="tns:get_all_guildsRequest"/>
-            <output message="tns:get_all_guildsResponse"/>
+            <input message="tns:GuildRequest"/>
+            <output message="tns:GuildResponse"/>
         </operation>
         <operation name="get_guild_by_id">
-            <input message="tns:get_guild_by_idRequest"/>
-            <output message="tns:get_guild_by_idResponse"/>
+            <input message="tns:GuildByIdRequest"/>
+            <output message="tns:GuildResponse"/>
         </operation>
         <operation name="create_guild">
-            <input message="tns:create_guildRequest"/>
-            <output message="tns:create_guildResponse"/>
+            <input message="tns:CreateGuildRequest"/>
+            <output message="tns:GuildResponse"/>
         </operation>
         <operation name="join_guild">
-            <input message="tns:join_guildRequest"/>
-            <output message="tns:join_guildResponse"/>
+            <input message="tns:JoinGuildRequest"/>
+            <output message="tns:GuildResponse"/>
         </operation>
         <operation name="get_guild_members">
-            <input message="tns:get_guild_membersRequest"/>
-            <output message="tns:get_guild_membersResponse"/>
+            <input message="tns:MembersRequest"/>
+            <output message="tns:GuildResponse"/>
         </operation>
     </portType>
 
-    <!-- Binding -->
-    <binding name="GuildServiceSoapBinding" type="tns:GuildServicePortType">
-        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-        
+    <binding name="GuildServiceBinding" type="tns:GuildService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
         <operation name="get_all_guilds">
-            <soap:operation soapAction="http://ashennetwork.soap/guild/get_all_guilds"/>
+            <soap:operation soapAction="get_all_guilds"/>
             <input><soap:body use="literal"/></input>
             <output><soap:body use="literal"/></output>
         </operation>
-        
         <operation name="get_guild_by_id">
-            <soap:operation soapAction="http://ashennetwork.soap/guild/get_guild_by_id"/>
+            <soap:operation soapAction="get_guild_by_id"/>
             <input><soap:body use="literal"/></input>
             <output><soap:body use="literal"/></output>
         </operation>
-        
         <operation name="create_guild">
-            <soap:operation soapAction="http://ashennetwork.soap/guild/create_guild"/>
+            <soap:operation soapAction="create_guild"/>
             <input><soap:body use="literal"/></input>
             <output><soap:body use="literal"/></output>
         </operation>
-        
         <operation name="join_guild">
-            <soap:operation soapAction="http://ashennetwork.soap/guild/join_guild"/>
+            <soap:operation soapAction="join_guild"/>
             <input><soap:body use="literal"/></input>
             <output><soap:body use="literal"/></output>
         </operation>
-        
         <operation name="get_guild_members">
-            <soap:operation soapAction="http://ashennetwork.soap/guild/get_guild_members"/>
+            <soap:operation soapAction="get_guild_members"/>
             <input><soap:body use="literal"/></input>
             <output><soap:body use="literal"/></output>
         </operation>
     </binding>
 
-    <!-- Service -->
     <service name="GuildService">
-        <port name="GuildServicePort" binding="tns:GuildServiceSoapBinding">
+        <port name="GuildServicePort" binding="tns:GuildServiceBinding">
             <soap:address location="http://localhost:8000/soap"/>
         </port>
     </service>
@@ -317,6 +182,27 @@ def soap_service():
     except Exception as e:
         return soap_fault(str(e))
 
+# Funções auxiliares para parsing SOAP
+import re
+
+def extract_soap_value(xml, tag):
+    """Extrai valor de uma tag XML de forma simples"""
+    pattern = f'<{tag}>(.*?)</{tag}>'
+    match = re.search(pattern, xml)
+    return match.group(1) if match else None
+
+def create_soap_response(operation, content):
+    """Cria resposta SOAP padronizada"""
+    return f'''<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:tns="http://ashennetwork.soap/guild">
+    <soap:Body>
+        <tns:{operation}Response>
+            {content}
+        </tns:{operation}Response>
+    </soap:Body>
+</soap:Envelope>'''
+
 def handle_get_all_guilds():
     """Lista todas as guildas"""
     conn = get_db_connection()
@@ -336,27 +222,13 @@ def handle_get_all_guilds():
                 <member_count>{guild[4]}</member_count>
             </guild>'''
     
-    response = f'''<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="http://ashennetwork.soap/guild">
-    <soap:Body>
-        <tns:get_all_guildsResponse>
-            {guilds_xml}
-        </tns:get_all_guildsResponse>
-    </soap:Body>
-</soap:Envelope>'''
-    
-    return Response(response, mimetype='text/xml')
+    return Response(create_soap_response('get_all_guilds', guilds_xml), mimetype='text/xml')
 
 def handle_get_guild_by_id(soap_request):
     """Busca guilda por ID"""
-    # Extrair ID da requisição SOAP (parse simples)
-    import re
-    match = re.search(r'<guild_id>(\d+)</guild_id>', soap_request)
-    if not match:
+    guild_id = extract_soap_value(soap_request, 'guild_id')
+    if not guild_id:
         return soap_fault("Invalid guild_id")
-    
-    guild_id = int(match.group(1))
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -367,38 +239,25 @@ def handle_get_guild_by_id(soap_request):
     if not guild:
         return soap_fault("Guild not found")
     
-    response = f'''<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="http://ashennetwork.soap/guild">
-    <soap:Body>
-        <tns:get_guild_by_idResponse>
-            <guild>
-                <id>{guild[0]}</id>
-                <name>{guild[1]}</name>
-                <description>{guild[2]}</description>
-                <leader>{guild[3]}</leader>
-                <member_count>{guild[4]}</member_count>
-            </guild>
-        </tns:get_guild_by_idResponse>
-    </soap:Body>
-</soap:Envelope>'''
+    guild_xml = f'''
+        <guild>
+            <id>{guild[0]}</id>
+            <name>{guild[1]}</name>
+            <description>{guild[2]}</description>
+            <leader>{guild[3]}</leader>
+            <member_count>{guild[4]}</member_count>
+        </guild>'''
     
-    return Response(response, mimetype='text/xml')
+    return Response(create_soap_response('get_guild_by_id', guild_xml), mimetype='text/xml')
 
 def handle_create_guild(soap_request):
     """Cria nova guilda"""
-    import re
+    name = extract_soap_value(soap_request, 'name')
+    description = extract_soap_value(soap_request, 'description') 
+    leader = extract_soap_value(soap_request, 'leader')
     
-    name_match = re.search(r'<name>(.*?)</name>', soap_request)
-    desc_match = re.search(r'<description>(.*?)</description>', soap_request)
-    leader_match = re.search(r'<leader>(.*?)</leader>', soap_request)
-    
-    if not all([name_match, desc_match, leader_match]):
+    if not all([name, description, leader]):
         return soap_fault("Missing required fields")
-    
-    name = name_match.group(1)
-    description = desc_match.group(1)
-    leader = leader_match.group(1)
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -415,23 +274,16 @@ def handle_create_guild(soap_request):
         conn.commit()
         conn.close()
         
-        response = f'''<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="http://ashennetwork.soap/guild">
-    <soap:Body>
-        <tns:create_guildResponse>
+        guild_xml = f'''
             <guild>
                 <id>{guild_id}</id>
                 <name>{name}</name>
                 <description>{description}</description>
                 <leader>{leader}</leader>
                 <member_count>1</member_count>
-            </guild>
-        </tns:create_guildResponse>
-    </soap:Body>
-</soap:Envelope>'''
+            </guild>'''
         
-        return Response(response, mimetype='text/xml')
+        return Response(create_soap_response('create_guild', guild_xml), mimetype='text/xml')
         
     except sqlite3.IntegrityError:
         conn.close()
@@ -439,16 +291,11 @@ def handle_create_guild(soap_request):
 
 def handle_join_guild(soap_request):
     """Adiciona personagem à guilda"""
-    import re
+    guild_id = extract_soap_value(soap_request, 'guild_id')
+    character_name = extract_soap_value(soap_request, 'character_name')
     
-    guild_id_match = re.search(r'<guild_id>(\d+)</guild_id>', soap_request)
-    char_name_match = re.search(r'<character_name>(.*?)</character_name>', soap_request)
-    
-    if not all([guild_id_match, char_name_match]):
+    if not all([guild_id, character_name]):
         return soap_fault("Missing required fields")
-    
-    guild_id = int(guild_id_match.group(1))
-    character_name = char_name_match.group(1)
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -475,27 +322,14 @@ def handle_join_guild(soap_request):
     conn.commit()
     conn.close()
     
-    response = f'''<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="http://ashennetwork.soap/guild">
-    <soap:Body>
-        <tns:join_guildResponse>
-            <message>Character {character_name} joined guild successfully</message>
-        </tns:join_guildResponse>
-    </soap:Body>
-</soap:Envelope>'''
-    
-    return Response(response, mimetype='text/xml')
+    message_xml = f'<message>Character {character_name} joined guild successfully</message>'
+    return Response(create_soap_response('join_guild', message_xml), mimetype='text/xml')
 
 def handle_get_guild_members(soap_request):
     """Lista membros da guilda"""
-    import re
-    
-    guild_id_match = re.search(r'<guild_id>(\d+)</guild_id>', soap_request)
-    if not guild_id_match:
+    guild_id = extract_soap_value(soap_request, 'guild_id')
+    if not guild_id:
         return soap_fault("Invalid guild_id")
-    
-    guild_id = int(guild_id_match.group(1))
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -514,17 +348,7 @@ def handle_get_guild_members(soap_request):
                 <join_date>{member[4]}</join_date>
             </member>'''
     
-    response = f'''<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:tns="http://ashennetwork.soap/guild">
-    <soap:Body>
-        <tns:get_guild_membersResponse>
-            {members_xml}
-        </tns:get_guild_membersResponse>
-    </soap:Body>
-</soap:Envelope>'''
-    
-    return Response(response, mimetype='text/xml')
+    return Response(create_soap_response('get_guild_members', members_xml), mimetype='text/xml')
 
 def soap_fault(message):
     """Retorna um SOAP Fault"""
