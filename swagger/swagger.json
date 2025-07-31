@@ -1,0 +1,160 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Dark Souls REST API",
+    "version": "1.0.0",
+    "description": "API REST para gerenciar personagens e itens do Dark Souls Network"
+  },
+  "paths": {
+    "/api/characters": {
+      "get": {
+        "summary": "Listar personagens",
+        "responses": {
+          "200": {
+            "description": "Lista de personagens com links HATEOAS"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar um personagem",
+        "requestBody": {
+          "description": "Dados do personagem",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "level": { "type": "integer" }
+                },
+                "required": ["name", "level"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Personagem criado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          }
+        }
+      }
+    },
+    "/api/characters/{id}/items": {
+      "get": {
+        "summary": "Listar itens do personagem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do personagem",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Itens do personagem"
+          },
+          "404": {
+            "description": "Personagem não encontrado"
+          }
+        }
+      },
+      "post": {
+        "summary": "Adicionar item ao personagem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do personagem",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Item a ser adicionado",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "item": { "type": "string" }
+                },
+                "required": ["item"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item adicionado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "404": {
+            "description": "Personagem não encontrado"
+          }
+        }
+      }
+    },
+    "/api/items": {
+      "get": {
+        "summary": "Listar todos os itens",
+        "responses": {
+          "200": {
+            "description": "Lista de itens com links HATEOAS"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar um novo item",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": { "type": "string" }
+                },
+                "required": ["name", "type"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Item criado" },
+          "400": { "description": "Dados inválidos" }
+        }
+      }
+    },
+    "/api/items/{id}": {
+      "get": {
+        "summary": "Obter item por ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Item encontrado" },
+          "404": { "description": "Item não encontrado" }
+        }
+      }
+    }
+  }
+}

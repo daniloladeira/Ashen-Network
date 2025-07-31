@@ -1,0 +1,327 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Ashen Network API Gateway",
+    "version": "1.0.0",
+    "description": "API Gateway que integra serviços REST (Characters/Items) e SOAP (Guilds) do Dark Souls Network"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "API Gateway Server"
+    }
+  ],
+  "paths": {
+    "/api/gateway/health": {
+      "get": {
+        "summary": "Health check do gateway e serviços",
+        "tags": ["Gateway"],
+        "responses": {
+          "200": {
+            "description": "Status dos serviços",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gateway": { "type": "string" },
+                    "timestamp": { "type": "string" },
+                    "services": {
+                      "type": "object",
+                      "properties": {
+                        "rest": { "type": "string" },
+                        "soap": { "type": "string" }
+                      }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Link" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gateway/dashboard": {
+      "get": {
+        "summary": "Dashboard com dados integrados REST + SOAP",
+        "tags": ["Gateway"],
+        "responses": {
+          "200": {
+            "description": "Dashboard com personagens e guildas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "timestamp": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "characters": { "type": "object" },
+                        "guilds": { "type": "object" }
+                      }
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Link" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gateway/characters": {
+      "get": {
+        "summary": "Listar personagens (via REST API)",
+        "tags": ["Characters (REST)"],
+        "responses": {
+          "200": {
+            "description": "Lista de personagens com links HATEOAS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Character" }
+                    },
+                    "source": { "type": "string", "example": "REST API" },
+                    "links": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Link" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar personagem (via REST API)",
+        "tags": ["Characters (REST)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Chosen Undead" },
+                  "level": { "type": "integer", "example": 25 }
+                },
+                "required": ["name", "level"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Personagem criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Character" },
+                    "source": { "type": "string" },
+                    "links": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Link" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gateway/characters/{id}/items": {
+      "get": {
+        "summary": "Listar itens do personagem (via REST API)",
+        "tags": ["Characters (REST)"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Itens do personagem"
+          }
+        }
+      }
+    },
+    "/api/gateway/guilds": {
+      "get": {
+        "summary": "Listar guildas (via SOAP Service)",
+        "tags": ["Guilds (SOAP)"],
+        "responses": {
+          "200": {
+            "description": "Lista de guildas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Guild" }
+                    },
+                    "source": { "type": "string", "example": "SOAP Service" },
+                    "links": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Link" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "SOAP service unavailable"
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar guilda (via SOAP Service)",
+        "tags": ["Guilds (SOAP)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Warriors of Sunlight" },
+                  "description": { "type": "string", "example": "Praise the Sun!" },
+                  "leader": { "type": "string", "example": "Solaire" }
+                },
+                "required": ["name", "description", "leader"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Guilda criada"
+          }
+        }
+      }
+    },
+    "/api/gateway/guilds/{id}": {
+      "get": {
+        "summary": "Buscar guilda por ID (via SOAP Service)",
+        "tags": ["Guilds (SOAP)"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados da guilda"
+          }
+        }
+      }
+    },
+    "/api/gateway/guilds/{id}/members": {
+      "get": {
+        "summary": "Listar membros da guilda (via SOAP Service)",
+        "tags": ["Guilds (SOAP)"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Membros da guilda"
+          }
+        }
+      }
+    },
+    "/api/gateway/guilds/join": {
+      "post": {
+        "summary": "Entrar em uma guilda (via SOAP Service)",
+        "tags": ["Guilds (SOAP)"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "guild_id": { "type": "integer", "example": 1 },
+                  "character_name": { "type": "string", "example": "Chosen Undead" }
+                },
+                "required": ["guild_id", "character_name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Personagem entrou na guilda"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Link": {
+        "type": "object",
+        "properties": {
+          "rel": { "type": "string" },
+          "href": { "type": "string" },
+          "method": { "type": "string" }
+        }
+      },
+      "Character": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "level": { "type": "integer" },
+          "links": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Link" }
+          }
+        }
+      },
+      "Guild": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "leader": { "type": "string" },
+          "member_count": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
